@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.post("/add", (req, res) => {
+app.post("/todos", (req, res) => {
   const tods = {
     id: Math.floor(Math.random() * 1000),
     title: req.body.title,
@@ -23,6 +23,32 @@ app.post("/add", (req, res) => {
 
 app.get("/todos", (req, res) => {
   res.send(todos);
+});
+
+app.delete("/todos/:id", (req, res) => {
+  parsed_id = parseInt(req.params.id);
+  for (i = 0; i < todos.length; i++) {
+    if (parsed_id == todos[i].id) {
+      index = i;
+      break;
+    } else {
+      index = -1;
+    }
+  }
+  if (index == -1) {
+    res.send("todo does not exist");
+    res.status(400).send();
+  } else {
+    new_todo = [];
+    for (i = 0; i < todos.length; i++) {
+      if (i != index) {
+        new_todo.push(todos[i]);
+      }
+    }
+    todos = new_todo;
+    res.send(todos);
+    res.status(200).send();
+  }
 });
 
 app.listen(port, () => {

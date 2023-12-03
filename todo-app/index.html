@@ -11,12 +11,19 @@
     }
 
     function callback(resp) {
-      res.json().then(parsedResponse);
+      resp.json().then(parsedResponse);
     }
 
     function ontap() {
       fetch("http://localhost:3000/todos", {
-        method: "GET",
+        method: "POST",
+        body: JSON.stringify({
+          title: "khana",
+          description: "khao",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }).then(callback);
     }
 
