@@ -6,43 +6,84 @@
     <title>TODO APP</title>
   </head>
   <script>
-    function parsedResponse(resp) {
-      console.log(resp);
-    }
-
-    function callback(resp) {
-      resp.json().then(parsedResponse);
-    }
-
     function ontap() {
       fetch("http://localhost:3000/todos", {
         method: "POST",
-        body: JSON.stringify({
-          title: "khana",
-          description: "khao",
-        }),
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          title: document.getElementById("title").value,
+          description: document.getElementById("description").value,
+        }),
       }).then(callback);
     }
-
-    // function ontap() {
-    //   fetch("http://localhost:3000/todos", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       title: document.getElementById("title").value,
-    //       description: document.getElementById("description").value,
-    //     }),
-    //   }).then(callback);
-    // }
+    function parsedResponse(resp) {
+      console.log(resp);
+      view_all_todos(resp);
+    }
+    function callback(resp) {
+      resp.json().then(parsedResponse);
+    }
+    function view_all_todos() {
+      fetch("http://localhost:3000/todos", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then(callback2);
+    }
+    function callback2(resp) {
+      resp.json().then(parsedResponse2);
+    }
+    function parsedResponse2(data) {
+      console.log(data);
+      var parent_element = document.getElementById("main-area");
+      // var t = document.getElementById("main-area-title");
+      // // var d = document.getElementById("main-area-description");
+      // t.innerHTML = data[i].title;
+      //   d.innerHTML = data[i].description;
+      for (i = 0; i < data.length; i++) {
+        var child_element = document.createElement("div");
+        var grandchild1 = document.createElement("span");
+        var grandchild2 = document.createElement("span");
+        var grandchild3 = document.createElement("button");
+        grandchild1.innerHTML = data[i].title;
+        grandchild2.innerHTML = data[i].description;
+        grandchild3.innerHTML = "Delete";
+        grandchild3.setAttribute("onclick", "deletetodos(" + data[i].id + ")");
+        parent_element.appendChild(child_element);
+        child_element.appendChild(grandchild1);
+        child_element.appendChild(grandchild2);
+        child_element.appendChild(grandchild3);
+      }
+      function deletetodos(id) {
+        fetch("http://localhost:3000/todos/" + id, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then(callback3);
+      }
+      function callback3(resp) {
+        resp.json().then(parsedResponse3);
+      }
+      function parsedResponse3(resp) {
+        console.log("delete done");
+        view_all_todos();
+      }
+      // main_area_selector.innerHTML = JSON.stringify(data);
+    }
   </script>
   <body>
     <input type="text" id="title" placeholder="Enter your todo" />
     <input type="text" id="description" placeholder="explain your todo" />
     <button id="add" onclick="ontap()">Add</button>
+    <button id="view-all" onclick="view_all_todos()">View All Todos</button>
+    <div id="main-area">
+      <!-- <span id="main-area-title"></span>
+      <span id="main-area-description"></span>
+      <button id="delete">Delete</button> -->
+    </div>
   </body>
 </html>
