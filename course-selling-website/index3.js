@@ -4,9 +4,10 @@ const port = 3000;
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 app.use(bodyParser.json());
-const secret = "i-love-momos";
+const secret = process.env.JWT_SECRET;
 
 //Defining Mongoose Schemas
 const userSchema = new mongoose.Schema({
@@ -33,17 +34,12 @@ const User = mongoose.model("User", userSchema);
 const Admin = mongoose.model("Admin", adminSchema);
 const Course = mongoose.model("Course", courseSchema);
 
-//connecting to mongodb
-// mongoose.connect(
-//   "mongodb+srv://amaan8429:9125815706@amaan.f1vifaa.mongodb.net/"
-// );
-
 async function connectToDatabase() {
   try {
-    await mongoose.connect(
-      "mongodb+srv://amaan8429:9125815706@amaan.f1vifaa.mongodb.net/courses",
-      { useNewUrlParser: true, useUnifiedTopology: true }
-    );
+    await mongoose.connect(process.env.DB_CONNECTION_STRING, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
