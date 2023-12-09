@@ -59,7 +59,7 @@ app.post("/admin/signup", async (req, res) => {
     if (admin) {
       res.status(409).send("admin already exists");
     } else {
-      const newAdmin = Admin({ username, password });
+      const newAdmin = new Admin({ username, password });
       await newAdmin.save();
       const token = jwt.sign({ username, role: "admin" }, secret, {
         expiresIn: "1h",
@@ -97,7 +97,7 @@ app.post("/admin/login", async (req, res) => {
 
 app.post("/admin/add_course", AuthenticateJwt, async (req, res) => {
   try {
-    const course = Course(req.body);
+    const course = new Course(req.body);
     await course.save();
     res
       .status(200)
@@ -156,7 +156,7 @@ app.post("/user/signup", async (req, res) => {
       res.status(409).send("user already exists");
     } else {
       try {
-        const newUser = User({ username, password });
+        const newUser = new User({ username, password });
         await newUser.save();
         const token = jwt.sign({ username, role: "user" }, secret, {
           expiresIn: "1h",
@@ -205,26 +205,34 @@ app.get("/user/courses", AuthenticateJwt, async (req, res) => {
 });
 
 app.post("/user/courses/:courseId", AuthenticateJwt, async (req, res) => {
-  id = req.params.courseId;
+  const id = req.params.courseId;
   if (!id) {
-    return res.status(404).send("course id is needed");
+    return res.status(404).send("Course ID is needed");
   }
-  const my_course = await Course.findById(id);
-  if (my_course) {
+
+  try {
+    const my_course = await Course.findOne({ _id: id });
+
+    if (!my_course) {
+      return res.status(404).send("Error finding your course");
+    }
+
     const u = req.username;
     const my_user = await User.findOne({ username: u });
-    if (my_user) {
-      my_user.purchasedCourses.push(my_course);
-      await my_user.save();
-      res.status(200).send({
-        message: "you have successfully purchased the course",
-        my_course,
-      });
-    } else {
-      res.status(404).send("error finding your user");
+
+    if (!my_user) {
+      return res.status(404).send("Error finding your user");
     }
-  } else {
-    res.status(404).send("error finding your course");
+    console.log(my_course);
+    my_user.purchasedCourses.push(my_course);
+    await my_user.save();
+    res.status(200).send({
+      message: "You have successfully purchased the course",
+      my_course,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
@@ -233,7 +241,7 @@ app.get("/user/all_purchased_courses", AuthenticateJwt, async (req, res) => {
   if (!u) {
     return res.status(404).send("username needed");
   }
-  const my_user = await User.find({ u });
+  const my_user = await User.findOne({ username: u });
   if (my_user) {
     const all_courses = my_user.purchasedCourses;
     res.status(200).send({ all_courses });
