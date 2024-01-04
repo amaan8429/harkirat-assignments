@@ -4,9 +4,11 @@ const port = 3000;
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const cors = require("cors");
 require("dotenv").config();
 
 app.use(bodyParser.json());
+app.use(cors());
 const secret = process.env.JWT_SECRET;
 
 //Defining Mongoose Schemas
@@ -72,7 +74,7 @@ app.post("/admin/signup", async (req, res) => {
 });
 
 app.post("/admin/login", async (req, res) => {
-  const { username, password } = req.headers;
+  const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).send("username and password are required");
   }
@@ -103,6 +105,7 @@ app.post("/admin/add_course", AuthenticateJwt, async (req, res) => {
       .status(200)
       .send({ message: "course added successfully", courseId: course.id });
   } catch (error) {
+    console.log(error);
     return res.status(500).send("internal server error");
   }
 });
@@ -123,6 +126,11 @@ app.get("/admin/courses", AuthenticateJwt, async (req, res) => {
   } else {
     res.status(404).send("can't find your courses");
   }
+});
+
+app.get("/admin/me", AuthenticateJwt, (req, res) => {
+  const username = req.username;
+  res.status(200).json({ username: username });
 });
 
 function AuthenticateJwt(req, res, next) {
